@@ -10,7 +10,7 @@ app = FastAPI()
 MAILSOFTLY_PUBLIC_KEY = os.getenv("MAILSOFTLY_PUBLIC_KEY")
 
 
-def mailsoftly_signature_valid(signature_header: str, raw_body: str, secret: str) -> bool:
+def mailsoftly_signature_valid(signature_header: str, raw_body: bytes, secret: str) -> bool:
     if not signature_header:
         print("[Mailsoftly] Verification failed: X-Mailsoftly-Signature header is empty or missing.")
         return False
@@ -48,8 +48,9 @@ def mailsoftly_signature_valid(signature_header: str, raw_body: str, secret: str
 
     # Compute expected HMAC signature
     # Note: Secret and message must be converted to bytes for hmac in Python
+    timestamp_bytes = timestamp.encode("utf-8")
     secret_bytes = secret.encode("utf-8")
-    message_bytes = f"{timestamp}.{raw_body}".encode("utf-8")
+    message_bytes = timestamp_bytes + b"." + raw_body
     
     expected_hex = hmac.new(
         secret_bytes, 
